@@ -1,9 +1,18 @@
-runtime: python311
+FROM python:3.11-slim
 
-entrypoint: python scraper.py
+# Install OS build deps for lxml + bs4
+RUN apt-get update && apt-get install -y \
+    libxml2-dev \
+    libxslt1-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-instance_class: F1
+WORKDIR /app
 
-automatic_scaling:
-  min_instances: 0
-  max_instances: 1
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY scraper.py .
+
+# Cloud Run uses PORT env var automatically
+CMD ["python", "scraper.py"]
